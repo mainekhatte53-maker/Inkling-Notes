@@ -4,16 +4,17 @@ import { Note } from '@/types';
 import { NoteCard } from './note-card';
 import { Button } from './ui/button';
 import { useRouter } from 'next/navigation';
+import { Timestamp } from 'firebase/firestore';
 
 // A mock note to display as a placeholder
+const now = Timestamp.now();
 const mockNote: Note = {
   id: '1',
   title: 'Welcome to Inkling Notes!',
   content: 'This is a sample note. You can start creating your own notes by using the "New Note" button in the sidebar. Your actual notes are not being loaded right now.',
   tags: ['welcome', 'sample'],
-  // Firestore Timestamps are objects with seconds and nanoseconds
-  createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 } as any,
-  updatedAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 } as any,
+  createdAt: now,
+  updatedAt: now,
   userId: 'mock-user',
 };
 
