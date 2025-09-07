@@ -11,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import {auth} from 'genkit/next';
 
 const SuggestTagsInputSchema = z.object({
   noteContent: z
@@ -53,6 +54,13 @@ const suggestTagsFlow = ai.defineFlow(
     name: 'suggestTagsFlow',
     inputSchema: SuggestTagsInputSchema,
     outputSchema: SuggestTagsOutputSchema,
+    auth: auth(
+      (auth) => {
+        if (!auth) {
+          throw new Error('Authentication required.');
+        }
+      }
+    ),
   },
   async input => {
     const {output} = await suggestTagsPrompt(input);
