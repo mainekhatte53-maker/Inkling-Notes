@@ -29,10 +29,14 @@ import {
   Pen,
   PlusCircle,
   Tag,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 const Logo = () => (
   <Link href="/dashboard" className="flex items-center gap-2">
@@ -48,10 +52,38 @@ export function MainSidebar() {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleLogout = async () => {
     await auth.signOut();
     router.push('/login');
+  };
+
+  const handleNewNote = async () => {
+    if (!user) return;
+    setIsCreating(true);
+    try {
+      const docRef = await addDoc(collection(db, 'notes'), {
+        title: 'Untitled Note',
+        content: '',
+        tags: [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        userId: user.uid,
+      });
+      toast({ title: 'Created new note!' });
+      router.push(`/notes/${docRef.id}`);
+    } catch (error) {
+      console.error('Error creating new note:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Failed to create note',
+        description: 'Please try again later.',
+      });
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   // Dummy tags - replace with actual data fetching
@@ -65,11 +97,17 @@ export function MainSidebar() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <Button className="w-full justify-start" asChild>
-              <Link href="/notes/new">
+            <Button
+              className="w-full justify-start"
+              onClick={handleNewNote}
+              disabled={isCreating}
+            >
+              {isCreating ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
                 <PlusCircle className="mr-2 h-4 w-4" />
-                New Note
-              </Link>
+              )}
+              New Note
             </Button>
           </SidebarMenuItem>
           <SidebarMenuItem>

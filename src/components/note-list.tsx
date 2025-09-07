@@ -1,49 +1,43 @@
 'use client';
 
 import { Note } from '@/types';
-import { Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { db } from '@/lib/firebase';
 import { NoteCard } from './note-card';
 import { Skeleton } from './ui/skeleton';
 import { Button } from './ui/button';
 import Link from 'next/link';
 
-// This is a mock. In a real app, this would come from a Firestore query.
-const dummyNotes: Note[] = [
-  {
-    id: '1',
-    title: 'Welcome to Inkling Notes',
-    content:
-      'This is your first note. You can edit it, add tags, and more. Use markdown for rich text formatting!',
-    tags: ['getting-started', 'welcome'],
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
-    userId: '123',
-  },
-  {
-    id: '2',
-    title: 'Brainstorming new project ideas',
-    content:
-      '- A "smart" to-do list that learns your habits.\n- A recipe app that suggests meals based on ingredients you have.\n- A personal finance tracker with AI insights.',
-    tags: ['ideas', 'projects'],
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
-    userId: '123',
-  },
-  {
-    id: '3',
-    title: 'Meeting Notes - Q2 Planning',
-    content:
-      "## Key Takeaways\n*   Finalize marketing budget by EOW.\n*   John to lead the new 'Phoenix' initiative.\n*   Team retreat scheduled for August.",
-    tags: ['work', 'meetings'],
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
-    userId: '123',
-  },
-];
-
 export function NoteList() {
-  const notes = dummyNotes;
-  const isLoading = false; // Set to true to see skeleton loaders
+  const { user } = useAuth();
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    };
+
+    setIsLoading(true);
+    const q = query(collection(db, 'notes'), where('userId', '==', user.uid));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const notesData: Note[] = [];
+      querySnapshot.forEach((doc) => {
+        notesData.push({ id: doc.id, ...doc.data() } as Note);
+      });
+      setNotes(notesData.sort((a, b) => b.updatedAt.toMillis() - a.updatedAt.toMillis()));
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Error fetching notes:", error);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   if (isLoading) {
     return (

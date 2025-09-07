@@ -1,42 +1,16 @@
 import { NoteEditor } from "@/components/note-editor";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import type { Note } from "@/types";
 
 async function getNote(id: string) {
-    // This is a placeholder for fetching a single note.
-    // In a real app you'd fetch from Firestore `doc(db, 'notes', id)`
-    // and handle loading/error states.
-    // Here we return a mock note for demonstration.
-    if (id === '1' || id === '2' || id === '3') {
-        const { Timestamp } = await import('firebase/firestore');
-        const dummyNotes: any = {
-            '1': {
-                id: '1',
-                title: 'Welcome to Inkling Notes',
-                content: 'This is your first note. You can edit it, add tags, and more. Use markdown for rich text formatting!',
-                tags: ['getting-started', 'welcome'],
-            },
-            '2': {
-                id: '2',
-                title: 'Brainstorming new project ideas',
-                content: '- A "smart" to-do list that learns your habits.\n- A recipe app that suggests meals based on ingredients you have.\n- A personal finance tracker with AI insights.',
-                tags: ['ideas', 'projects'],
-            },
-            '3': {
-                id: '3',
-                title: 'Meeting Notes - Q2 Planning',
-                content: "## Key Takeaways\n*   Finalize marketing budget by EOW.\n*   John to lead the new 'Phoenix' initiative.\n*   Team retreat scheduled for August.",
-                tags: ['work', 'meetings'],
-            },
-        }
-        return {
-            ...dummyNotes[id],
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-            userId: '123'
-        };
+    const noteDoc = await getDoc(doc(db, 'notes', id));
+
+    if (!noteDoc.exists()) {
+        return null;
     }
-    return null;
+
+    return { id: noteDoc.id, ...noteDoc.data() } as Note;
 }
 
 export default async function NotePage({ params }: { params: { id: string } }) {
