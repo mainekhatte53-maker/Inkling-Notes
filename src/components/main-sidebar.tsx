@@ -38,14 +38,9 @@ import {
   addDoc,
   collection,
   serverTimestamp,
-  query,
-  where,
-  onSnapshot,
 } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
-import type { Note } from '@/types';
-import { Skeleton } from './ui/skeleton';
+import { useState } from 'react';
 
 const Logo = () => (
   <Link href="/dashboard" className="flex items-center gap-2">
@@ -63,29 +58,6 @@ export function MainSidebar() {
   const pathname = usePathname();
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
-  const [isLoadingTags, setIsLoadingTags] = useState(true);
-
-  useEffect(() => {
-    if (!user) return;
-
-    setIsLoadingTags(true);
-    const q = query(collection(db, 'notes'), where('userId', '==', user.uid));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allTags = new Set<string>();
-      snapshot.forEach((doc) => {
-        const note = doc.data() as Note;
-        if (note.tags) {
-          note.tags.forEach((tag) => allTags.add(tag));
-        }
-      });
-      setTags(Array.from(allTags).sort());
-      setIsLoadingTags(false);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
 
   const handleLogout = async () => {
     await auth.signOut();
@@ -111,7 +83,7 @@ export function MainSidebar() {
       toast({
         variant: 'destructive',
         title: 'Failed to create note',
-        description: 'Please try again later.',
+        description: 'Please check your permissions and try again.',
       });
     } finally {
       setIsCreating(false);
@@ -153,32 +125,9 @@ export function MainSidebar() {
           </SidebarMenuItem>
           <SidebarGroup>
             <SidebarGroupLabel>Tags</SidebarGroupLabel>
-            {isLoadingTags ? (
-              <div className="space-y-2 px-2">
-                <Skeleton className="h-7 w-full" />
-                <Skeleton className="h-7 w-full" />
-                <Skeleton className="h-7 w-full" />
-              </div>
-            ) : tags.length > 0 ? (
-              tags.map((tag) => (
-                <SidebarMenuButton
-                  key={tag}
-                  size="sm"
-                  asChild
-                  className="text-muted-foreground"
-                  isActive={pathname === `/dashboard` && router.asPath.includes(`tag=${tag}`)}
-                >
-                  <Link href={`/dashboard?tag=${tag}`}>
-                    <Tag className="text-inherit" />
-                    <span>{tag}</span>
-                  </Link>
-                </SidebarMenuButton>
-              ))
-            ) : (
-              <p className="px-2 text-xs text-muted-foreground">
-                No tags yet. Add tags to your notes to see them here.
-              </p>
-            )}
+            <p className="px-2 text-xs text-muted-foreground">
+              Tag loading is currently disabled.
+            </p>
           </SidebarGroup>
         </SidebarMenu>
       </SidebarContent>

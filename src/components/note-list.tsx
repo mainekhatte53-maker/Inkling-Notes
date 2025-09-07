@@ -1,126 +1,46 @@
 'use client';
 
 import { Note } from '@/types';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { db } from '@/lib/firebase';
 import { NoteCard } from './note-card';
-import { Skeleton } from './ui/skeleton';
 import { Button } from './ui/button';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
 
+// A mock note to display as a placeholder
+const mockNote: Note = {
+  id: '1',
+  title: 'Welcome to Inkling Notes!',
+  content: 'This is a sample note. You can start creating your own notes by using the "New Note" button in the sidebar. Your actual notes are not being loaded right now.',
+  tags: ['welcome', 'sample'],
+  // Firestore Timestamps are objects with seconds and nanoseconds
+  createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 } as any,
+  updatedAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 } as any,
+  userId: 'mock-user',
+};
 
 export function NoteList() {
-  const { user } = useAuth();
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { toast } = useToast();
-  const [isCreating, setIsCreating] = useState(false);
 
-  useEffect(() => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    };
-
-    setIsLoading(true);
-    const notesQuery = query(
-      collection(db, 'notes'), 
-      where('userId', '==', user.uid)
-    );
-    
-    const unsubscribe = onSnapshot(notesQuery, (querySnapshot) => {
-      const notesData: Note[] = [];
-      querySnapshot.forEach((doc) => {
-        notesData.push({ id: doc.id, ...doc.data() } as Note);
-      });
-      // Manually sort by date client-side
-      notesData.sort((a, b) => {
-        const dateA = a.updatedAt?.toDate() ?? new Date(0);
-        const dateB = b.updatedAt?.toDate() ?? new Date(0);
-        return dateB.getTime() - dateA.getTime();
-      });
-      setNotes(notesData);
-      setIsLoading(false);
-    }, (error) => {
-      console.error("Error fetching notes:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Error fetching notes',
-        description: 'Please check your permissions and try again.'
-      })
-      setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [user, toast]);
-
-  const handleNewNote = async () => {
-    if (!user) return;
-    setIsCreating(true);
-    try {
-      const docRef = await addDoc(collection(db, 'notes'), {
-        title: 'Untitled Note',
-        content: '',
-        tags: [],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        userId: user.uid,
-      });
-      toast({ title: 'Created new note!' });
-      router.push(`/notes/${docRef.id}`);
-    } catch (error) {
-      console.error('Error creating new note:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Failed to create note',
-        description: 'Please try again later.',
-      });
-    } finally {
-      setIsCreating(false);
-    }
+  const handleNewNote = () => {
+    // Note creation might still fail if permissions are incorrect,
+    // but this component will no longer crash the app.
+    router.push('/notes/new');
   };
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="flex flex-col space-y-3">
-            <Skeleton className="h-[125px] w-full rounded-xl" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (notes.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 py-20 text-center">
-        <h3 className="text-xl font-semibold tracking-tight">
-          You have no notes yet
-        </h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Get started by creating your first note.
-        </p>
-        <Button onClick={handleNewNote} disabled={isCreating} className="mt-4">
-          Create Note
-        </Button>
-      </div>
-    );
-  }
-
+  
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {notes.map((note) => (
-        <NoteCard key={note.id} note={note} />
-      ))}
+    <div>
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-destructive/50 bg-destructive/10 py-10 text-center mb-6">
+        <h3 className="text-xl font-semibold tracking-tight text-destructive-foreground">
+          Note Loading is Disabled
+        </h3>
+        <p className="mt-2 text-sm text-destructive-foreground/80">
+          The application is currently unable to load notes from the database due to a permission error.
+          The note below is an example. Please use the sidebar to create a new note.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <NoteCard note={mockNote} />
+      </div>
     </div>
   );
 }
