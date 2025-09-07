@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { firebaseAuth } from '@genkit-ai/firebase/auth';
+import { firebaseAuth } from '@genkit-ai/firebase';
 
 const SuggestTagsInputSchema = z.object({
   noteContent: z
