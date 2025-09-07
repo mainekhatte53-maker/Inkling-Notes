@@ -54,15 +54,13 @@ const suggestTagsFlow = ai.defineFlow(
     name: 'suggestTagsFlow',
     inputSchema: SuggestTagsInputSchema,
     outputSchema: SuggestTagsOutputSchema,
-    auth: auth(
-      (auth) => {
-        if (!auth) {
-          throw new Error('Authentication required.');
-        }
+    auth: auth((user) => {
+      if (!user) {
+        throw new Error('Authentication required.');
       }
-    ),
+    }),
   },
-  async input => {
+  async (input) => {
     const {output} = await suggestTagsPrompt(input);
     return output!;
   }
