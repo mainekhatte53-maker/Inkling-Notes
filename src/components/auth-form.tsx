@@ -62,7 +62,6 @@ export function AuthForm({ mode }: AuthFormProps) {
       description: `Welcome ${user.email || 'back'}!`,
     });
     router.push('/dashboard');
-    router.refresh();
   };
 
   const handleAuthError = (error: any) => {
