@@ -1,19 +1,24 @@
 'use client';
 
 import { Note } from '@/types';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
 import { NoteCard } from './note-card';
 import { Skeleton } from './ui/skeleton';
 import { Button } from './ui/button';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+
 
 export function NoteList() {
   const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -29,7 +34,11 @@ export function NoteList() {
       querySnapshot.forEach((doc) => {
         notesData.push({ id: doc.id, ...doc.data() } as Note);
       });
-      setNotes(notesData.sort((a, b) => b.updatedAt.toMillis() - a.updatedAt.toMillis()));
+      setNotes(notesData.sort((a, b) => {
+        if (!a.updatedAt) return 1;
+        if (!b.updatedAt) return -1;
+        return b.updatedAt.toMillis() - a.updatedAt.toMillis()
+      }));
       setIsLoading(false);
     }, (error) => {
       console.error("Error fetching notes:", error);
@@ -38,6 +47,32 @@ export function NoteList() {
 
     return () => unsubscribe();
   }, [user]);
+
+  const handleNewNote = async () => {
+    if (!user) return;
+    setIsCreating(true);
+    try {
+      const docRef = await addDoc(collection(db, 'notes'), {
+        title: 'Untitled Note',
+        content: '',
+        tags: [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        userId: user.uid,
+      });
+      toast({ title: 'Created new note!' });
+      router.push(`/notes/${docRef.id}`);
+    } catch (error) {
+      console.error('Error creating new note:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Failed to create note',
+        description: 'Please try again later.',
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -64,8 +99,8 @@ export function NoteList() {
         <p className="mt-2 text-sm text-muted-foreground">
           Get started by creating your first note.
         </p>
-        <Button asChild className="mt-4">
-          <Link href="/notes/new">Create Note</Link>
+        <Button onClick={handleNewNote} disabled={isCreating} className="mt-4">
+          Create Note
         </Button>
       </div>
     );
