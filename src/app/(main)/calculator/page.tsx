@@ -5,12 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function CalculatorPage() {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState('0');
   const [previousInput, setPreviousInput] = useState('');
   const [operator, setOperator] = useState('');
+  const [justCalculated, setJustCalculated] = useState(false);
 
   const handleNumberClick = (value: string) => {
-    setInput((prev) => prev + value);
+    if (justCalculated || input === '0') {
+      setInput(value);
+      setJustCalculated(false);
+    } else {
+      setInput((prev) => prev + value);
+    }
   };
 
   const handleOperatorClick = (op: string) => {
@@ -19,16 +25,22 @@ export default function CalculatorPage() {
       return;
     }
     if (input === '' || input === '-') return;
+
     if (previousInput !== '') {
       handleEqualsClick();
+      setPreviousInput(input);
+    } else {
+      setPreviousInput(input);
     }
-    setPreviousInput(input);
+    
     setInput('');
     setOperator(op);
+    setJustCalculated(false);
   };
 
   const handleEqualsClick = () => {
     if (previousInput === '' || input === '' || operator === '') return;
+    
     const num1 = parseFloat(previousInput);
     const num2 = parseFloat(input);
     let result;
@@ -57,31 +69,29 @@ export default function CalculatorPage() {
     setInput(String(result));
     setPreviousInput('');
     setOperator('');
+    setJustCalculated(true);
   };
 
   const handleClearClick = () => {
-    setInput('');
+    setInput('0');
     setPreviousInput('');
     setOperator('');
+    setJustCalculated(false);
   };
 
   const handleDecimalClick = () => {
-    if (!input.includes('.')) {
-      setInput(input + '.');
+    if (justCalculated) {
+        setInput('0.');
+        setJustCalculated(false);
+    } else if (!input.includes('.')) {
+        setInput(input + '.');
     }
   };
 
   const handleBackspaceClick = () => {
-    setInput(input.slice(0, -1));
+    if (justCalculated) return;
+    setInput(input.slice(0, -1) || '0');
   };
-
-
-  const buttons = [
-    '7', '8', '9', '/',
-    '4', '5', '6', '*',
-    '1', '2', '3', '-',
-    '0', '.', '=', '+',
-  ];
 
   const handleButtonClick = (btn: string) => {
     if(!isNaN(Number(btn))) {
@@ -95,9 +105,16 @@ export default function CalculatorPage() {
     }
   }
 
+  const buttons = [
+    '7', '8', '9', '/',
+    '4', '5', '6', '*',
+    '1', '2', '3', '-',
+    '0', '.', '=', '+',
+  ];
+
   return (
     <div className="flex justify-center items-center h-full">
-      <Card className="w-full max-w-sm shadow-lg">
+      <Card className="w-full max-w-xs shadow-lg">
         <CardHeader>
           <CardTitle>Calculator</CardTitle>
         </CardHeader>
@@ -108,16 +125,26 @@ export default function CalculatorPage() {
           <div className="grid grid-cols-4 gap-2">
             <Button variant="outline" className="col-span-2" onClick={handleClearClick}>C</Button>
             <Button variant="outline" onClick={handleBackspaceClick}>&larr;</Button>
-            {buttons.slice(3).map(btn => (
-                <Button
-                    key={btn}
-                    variant={['/', '*', '-', '+', '='].includes(btn) ? 'default' : 'outline'}
-                    onClick={() => handleButtonClick(btn)}
-                    className={btn === '=' ? 'col-start-3' : ''}
-                >
-                    {btn}
-                </Button>
-            ))}
+            <Button variant="outline" onClick={() => handleOperatorClick('/')}>/</Button>
+            
+            <Button variant="outline" onClick={() => handleNumberClick('7')}>7</Button>
+            <Button variant="outline" onClick={() => handleNumberClick('8')}>8</Button>
+            <Button variant="outline" onClick={() => handleNumberClick('9')}>9</Button>
+            <Button variant="outline" onClick={() => handleOperatorClick('*')}>*</Button>
+            
+            <Button variant="outline" onClick={() => handleNumberClick('4')}>4</Button>
+            <Button variant="outline" onClick={() => handleNumberClick('5')}>5</Button>
+            <Button variant="outline" onClick={() => handleNumberClick('6')}>6</Button>
+            <Button variant="outline" onClick={() => handleOperatorClick('-')}>-</Button>
+
+            <Button variant="outline" onClick={() => handleNumberClick('1')}>1</Button>
+            <Button variant="outline" onClick={() => handleNumberClick('2')}>2</Button>
+            <Button variant="outline" onClick={() => handleNumberClick('3')}>3</Button>
+            <Button variant="outline" onClick={() => handleOperatorClick('+')}>+</Button>
+
+            <Button variant="outline" className="col-span-2" onClick={() => handleNumberClick('0')}>0</Button>
+            <Button variant="outline" onClick={handleDecimalClick}>.</Button>
+            <Button onClick={handleEqualsClick}>=</Button>
           </div>
         </CardContent>
       </Card>
