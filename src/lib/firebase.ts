@@ -6,15 +6,12 @@ import { getStorage } from 'firebase/storage';
 // IMPORTANT: Replace with your Firebase project's configuration.
 // You can find this in your Firebase project console.
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'your-api-key',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'your-auth-domain',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'your-project-id',
-  storageBucket:
-    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'your-storage-bucket',
-  messagingSenderId:
-    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ||
-    'your-messaging-sender-id',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || 'your-app-id',
+  projectId: 'inkling-notes-n6xjj',
+  appId: '1:335688789979:web:ea7bceaff42ae30d4f01fe',
+  storageBucket: 'inkling-notes-n6xjj.firebasestorage.app',
+  apiKey: 'AIzaSyD7aBE5kK6avu6PrWDPkB_0rWzzUGIcDGc',
+  authDomain: 'inkling-notes-n6xjj.firebaseapp.com',
+  messagingSenderId: '335688789979',
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
