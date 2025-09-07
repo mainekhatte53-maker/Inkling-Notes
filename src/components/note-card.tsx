@@ -27,7 +27,9 @@ export function NoteCard({ note }: NoteCardProps) {
           <CardTitle className="truncate">{note.title}</CardTitle>
           <CardDescription>
             Updated{' '}
-            {formatDistanceToNow(note.updatedAt.toDate(), { addSuffix: true })}
+            {note.updatedAt
+              ? formatDistanceToNow(note.updatedAt.toDate(), { addSuffix: true })
+              : 'just now'}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-grow">
