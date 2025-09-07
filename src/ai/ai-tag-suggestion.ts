@@ -11,7 +11,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { firebaseAuth } from '@genkit-ai/firebase';
 
 const SuggestTagsInputSchema = z.object({
   noteContent: z
@@ -54,11 +53,6 @@ const suggestTagsFlow = ai.defineFlow(
     name: 'suggestTagsFlow',
     inputSchema: SuggestTagsInputSchema,
     outputSchema: SuggestTagsOutputSchema,
-    auth: firebaseAuth((user) => {
-      if (!user) {
-        throw new Error('Authentication required.');
-      }
-    }),
   },
   async (input) => {
     const {output} = await suggestTagsPrompt(input);
