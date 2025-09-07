@@ -33,7 +33,6 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { auth } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
-import { SheetTitle } from './ui/sheet';
 
 const Logo = () => (
   <Link href="/dashboard" className="flex items-center gap-2">
@@ -60,7 +59,6 @@ export function MainSidebar() {
 
   return (
     <Sidebar>
-      <SheetTitle className="sr-only">Main Navigation</SheetTitle>
       <SidebarHeader>
         <Logo />
       </SidebarHeader>
