@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {auth} from '@genkit-ai/firebase';
+import { firebaseAuth } from '@genkit-ai/firebase/auth';
 
 const SuggestTagsInputSchema = z.object({
   noteContent: z
@@ -54,7 +54,7 @@ const suggestTagsFlow = ai.defineFlow(
     name: 'suggestTagsFlow',
     inputSchema: SuggestTagsInputSchema,
     outputSchema: SuggestTagsOutputSchema,
-    auth: auth((user) => {
+    auth: firebaseAuth((user) => {
       if (!user) {
         throw new Error('Authentication required.');
       }
