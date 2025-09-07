@@ -1,8 +1,7 @@
-
 'use client';
 
 import { Note } from '@/types';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { db } from '@/lib/firebase';
@@ -30,14 +29,19 @@ export function NoteList() {
     setIsLoading(true);
     const notesQuery = query(
       collection(db, 'notes'), 
-      where('userId', '==', user.uid),
-      orderBy('updatedAt', 'desc')
+      where('userId', '==', user.uid)
     );
     
     const unsubscribe = onSnapshot(notesQuery, (querySnapshot) => {
       const notesData: Note[] = [];
       querySnapshot.forEach((doc) => {
         notesData.push({ id: doc.id, ...doc.data() } as Note);
+      });
+      // Manually sort by date client-side
+      notesData.sort((a, b) => {
+        const dateA = a.updatedAt?.toDate() ?? new Date(0);
+        const dateB = b.updatedAt?.toDate() ?? new Date(0);
+        return dateB.getTime() - dateA.getTime();
       });
       setNotes(notesData);
       setIsLoading(false);
