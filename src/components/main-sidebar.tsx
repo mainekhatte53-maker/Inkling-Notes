@@ -34,9 +34,18 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { auth, db } from '@/lib/firebase';
 import { useRouter, usePathname } from 'next/navigation';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  serverTimestamp,
+  query,
+  where,
+  onSnapshot,
+} from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import type { Note } from '@/types';
+import { Skeleton } from './ui/skeleton';
 
 const Logo = () => (
   <Link href="/dashboard" className="flex items-center gap-2">
@@ -54,6 +63,29 @@ export function MainSidebar() {
   const pathname = usePathname();
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+
+    setIsLoadingTags(true);
+    const q = query(collection(db, 'notes'), where('userId', '==', user.uid));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const allTags = new Set<string>();
+      snapshot.forEach((doc) => {
+        const note = doc.data() as Note;
+        if (note.tags) {
+          note.tags.forEach((tag) => allTags.add(tag));
+        }
+      });
+      setTags(Array.from(allTags).sort());
+      setIsLoadingTags(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   const handleLogout = async () => {
     await auth.signOut();
@@ -85,9 +117,6 @@ export function MainSidebar() {
       setIsCreating(false);
     }
   };
-
-  // Dummy tags - replace with actual data fetching
-  const tags = ['productivity', 'ideas', 'work', 'learning'];
 
   return (
     <Sidebar>
@@ -124,20 +153,32 @@ export function MainSidebar() {
           </SidebarMenuItem>
           <SidebarGroup>
             <SidebarGroupLabel>Tags</SidebarGroupLabel>
-            {tags.map((tag) => (
-              <SidebarMenuButton
-                key={tag}
-                size="sm"
-                asChild
-                className="text-muted-foreground"
-                isActive={pathname === `/tags/${tag}`}
-              >
-                <Link href={`/dashboard?tag=${tag}`}>
-                  <Tag className="text-inherit" />
-                  <span>{tag}</span>
-                </Link>
-              </SidebarMenuButton>
-            ))}
+            {isLoadingTags ? (
+              <div className="space-y-2 px-2">
+                <Skeleton className="h-7 w-full" />
+                <Skeleton className="h-7 w-full" />
+                <Skeleton className="h-7 w-full" />
+              </div>
+            ) : tags.length > 0 ? (
+              tags.map((tag) => (
+                <SidebarMenuButton
+                  key={tag}
+                  size="sm"
+                  asChild
+                  className="text-muted-foreground"
+                  isActive={pathname === `/tags/${tag}`}
+                >
+                  <Link href={`/dashboard?tag=${tag}`}>
+                    <Tag className="text-inherit" />
+                    <span>{tag}</span>
+                  </Link>
+                </SidebarMenuButton>
+              ))
+            ) : (
+              <p className="px-2 text-xs text-muted-foreground">
+                No tags yet. Add tags to your notes to see them here.
+              </p>
+            )}
           </SidebarGroup>
         </SidebarMenu>
       </SidebarContent>
