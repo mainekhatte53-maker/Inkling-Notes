@@ -26,10 +26,10 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { suggestTags } from '@/ai/ai-tag-suggestion';
 
 type NoteEditorProps = {
-  note: Note;
+  initialNote: Note;
 };
 
-export function NoteEditor({ note }: NoteEditorProps) {
+export function NoteEditor({ initialNote: note }: NoteEditorProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [title, setTitle] = useState(note.title);
