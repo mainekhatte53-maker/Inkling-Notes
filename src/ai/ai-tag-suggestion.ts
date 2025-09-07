@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {auth} from 'genkit/next';
+import {auth} from '@genkit-ai/next';
 
 const SuggestTagsInputSchema = z.object({
   noteContent: z
