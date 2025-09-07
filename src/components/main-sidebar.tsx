@@ -30,6 +30,7 @@ import {
   PlusCircle,
   Tag,
   Loader2,
+  Calculator,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { auth, db } from '@/lib/firebase';
@@ -120,6 +121,18 @@ export function MainSidebar() {
               <Link href="/dashboard">
                 <Home />
                 <span>Dashboard</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Calculator"
+              isActive={pathname === '/calculator'}
+              asChild
+            >
+              <Link href="/calculator">
+                <Calculator />
+                <span>Calculator</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
