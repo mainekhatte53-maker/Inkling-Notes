@@ -166,7 +166,7 @@ export function MainSidebar() {
                   size="sm"
                   asChild
                   className="text-muted-foreground"
-                  isActive={pathname === `/tags/${tag}`}
+                  isActive={pathname === `/dashboard` && router.asPath.includes(`tag=${tag}`)}
                 >
                   <Link href={`/dashboard?tag=${tag}`}>
                     <Tag className="text-inherit" />

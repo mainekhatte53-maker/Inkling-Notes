@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 
-export function NoteList({ tag }: { tag?: string }) {
+export function NoteList() {
   const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,20 +28,11 @@ export function NoteList({ tag }: { tag?: string }) {
     };
 
     setIsLoading(true);
-    let notesQuery = query(
+    const notesQuery = query(
       collection(db, 'notes'), 
       where('userId', '==', user.uid),
       orderBy('updatedAt', 'desc')
     );
-
-    if (tag) {
-      notesQuery = query(
-        collection(db, 'notes'),
-        where('userId', '==', user.uid),
-        where('tags', 'array-contains', tag),
-        orderBy('updatedAt', 'desc')
-      );
-    }
     
     const unsubscribe = onSnapshot(notesQuery, (querySnapshot) => {
       const notesData: Note[] = [];
@@ -61,7 +52,7 @@ export function NoteList({ tag }: { tag?: string }) {
     });
 
     return () => unsubscribe();
-  }, [user, tag, toast]);
+  }, [user, toast]);
 
   const handleNewNote = async () => {
     if (!user) return;
@@ -109,10 +100,10 @@ export function NoteList({ tag }: { tag?: string }) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 py-20 text-center">
         <h3 className="text-xl font-semibold tracking-tight">
-          {tag ? `No notes found for tag "${tag}"` : 'You have no notes yet'}
+          You have no notes yet
         </h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          {tag ? 'Try creating a new note with this tag!' : 'Get started by creating your first note.'}
+          Get started by creating your first note.
         </p>
         <Button onClick={handleNewNote} disabled={isCreating} className="mt-4">
           Create Note
